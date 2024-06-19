@@ -66,6 +66,7 @@
             $.ajax({
                 url: '试模打板记录.csv',
                 dataType: 'text',
+				cache: false, // 防止缓存问题
                 success: function(data) {
                     var rows = data.split('\n');
                     var tbody = $('tbody');
@@ -109,6 +110,7 @@
             $.ajax({
                 url: '试模打板记录.csv',
                 dataType: 'text',
+				cache: false, // 防止缓存问题
                 success: function(data) {
                     var rows = data.split('\n');
                     var currentRows = $('tbody tr');
@@ -164,9 +166,33 @@
 
         // 初次加载数据
         loadData();
+		
+        var lastModifiedTime = null;
+        function checkFileModification() {
+            $.ajax({
+                url: '试模打板记录.csv',
+                type: 'HEAD',
+                cache: false, // 防止缓存问题
+                success: function(data, status, xhr) {
+                    var newModifiedTime = xhr.getResponseHeader('Last-Modified');
 
-        // 每 5 秒钟检查一次数据更新
-        setInterval(updateTableData, 5000);
+                    if (lastModifiedTime && lastModifiedTime !== newModifiedTime) {
+                        // 文件已被修改，执行指定的程序
+                        updateTableData();
+                    }
+
+                    lastModifiedTime = newModifiedTime;
+                },
+                error: function() {
+                    console.error('无法获取文件信息');
+                }
+            });
+        }
+	//checkFileModification();
+	// 每3秒钟检查一次文件修改
+    setInterval(checkFileModification, 30000);
+		
+		
     </script>
 </body>
 </html>
